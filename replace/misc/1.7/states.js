@@ -397,27 +397,26 @@ states.State.prototype = {
       }
     }
   });
-}
+};
 
 /**
  * These are helper functions implementing addition "operators" and don't
  * implement any logic that is particular to states.
  */
-{
-  // Bitwise AND with a third undefined state.
-  function ternary (a, b) {
-    return a === undefined ? b : (b === undefined ? a : a && b);
-  };
+// Bitwise AND with a third undefined state.
+function ternary (a, b) {
+  return a === undefined ? b : (b === undefined ? a : a && b);
+};
 
-  // Inverts a (if it's not undefined) when invert is true.
-  function invert (a, invert) {
-    return (invert && a !== undefined) ? !a : a;
-  };
+// Inverts a (if it's not undefined) when invert is true.
+function invert (a, invert) {
+  return (invert && a !== undefined) ? !a : a;
+};
 
-  // Compares two values while ignoring undefined values.
-  function compare (a, b) {
-    return (a === b) ? (a === undefined ? a : true) : (a === undefined || b === undefined);
-  }
+// Compares two values while ignoring undefined values.
+function compare (a, b) {
+  return (a === b) ? (a === undefined ? a : true) : (a === undefined || b === undefined);
 }
+
 
 })(jQuery);
