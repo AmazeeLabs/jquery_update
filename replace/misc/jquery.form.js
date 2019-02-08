@@ -10,6 +10,39 @@
  */
 ;(function($) {
 
+// This library was using "for-in" loops in few places for both arrays and
+// objects. We changed this, making it use classic "for" loop for arrays and
+// fallback to "for-in" loop for objects.
+// We did this because there was an issue with some external library registering
+// Array.prototype.exclude method. The issue was:
+// - the for-in loop was iterating over an array
+// - this was including the "exclude" property
+// - as the "exclude" property is a function it was called
+// - no proper "this" was passed with the call
+// - it was ending with "this.filter is not a function" error on the screen
+// Code: https://github.com/drupalprojects/jquery_update/blob/1ad9a08/replace/misc/jquery.form.js#L90-L101
+function forEach(iterable, callback) {
+	var i;
+	if (isArray(iterable)) {
+		for (i = 0; i < iterable.length; i++) {
+			callback(i);
+		}
+	}
+	else {
+		for (i in iterable) {
+			callback(i);
+		}
+	}
+}
+function isArray(obj) {
+	if (typeof Array.isArray === 'undefined') {
+		Array.isArray = function(obj) {
+			return Object.prototype.toString.call(obj) === '[object Array]';
+		}
+	}
+	return Array.isArray(obj);
+}
+
 /*
 	Usage Note:
 	-----------
@@ -87,18 +120,18 @@ $.fn.ajaxSubmit = function(options) {
 	var n,v,a = this.formToArray(options.semantic);
 	if (options.data) {
 		options.extraData = options.data;
-		for (n in options.data) {
+		forEach(options.data, function(n) {
 			if(options.data[n] instanceof Array) {
-				for (var k in options.data[n]) {
+				forEach(options.data[n], function(k) {
 					a.push( { name: n, value: options.data[n][k] } );
-				}
+				});
 			}
 			else {
 				v = options.data[n];
 				v = $.isFunction(v) ? v() : v; // if value is fn, invoke it
 				a.push( { name: n, value: v } );
 			}
-		}
+		});
 	}
 
 	// give pre-submit callback an opportunity to abort the submit
@@ -283,11 +316,11 @@ $.fn.ajaxSubmit = function(options) {
 			var extraInputs = [];
 			try {
 				if (s.extraData) {
-					for (var n in s.extraData) {
+					forEach(s.extraData, function(n) {
 						extraInputs.push(
 							$('<input type="hidden" name="'+n+'" value="'+s.extraData[n]+'" />')
 								.appendTo(form)[0]);
-					}
+					});
 				}
 
 				// add iframe to doc and submit the form
